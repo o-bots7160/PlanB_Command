@@ -1,0 +1,45 @@
+{
+  "HALProvider": {
+    "Other Devices": {
+      "DutyCycleEncoder[0]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[53]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[54]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[54]/Rotor Sensor": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[55]": {
+        "header": {
+          "open": true
+        }
+      }
+    }
+  },
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo"
+    }
+  },
+  "NetworkTables Info": {
+    "Connections": {
+      "open": true
+    },
+    "visible": true
+  },
+  "NetworkTables View": {
+    "visible": false
+  }
+}
