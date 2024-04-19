@@ -23,6 +23,8 @@ import edu.wpi.first.wpilibj.simulation.DutyCycleEncoderSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import edu.wpi.first.wpilibj.Joystick;
 
@@ -37,6 +39,8 @@ import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.units.Voltage;
 
 import frc.robot.Robot;
+import swervelib.SwerveDrive;
+import swervelib.SwerveDriveTest;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -86,16 +90,6 @@ public class Shooter extends SubsystemBase
    private DutyCycleEncoderSim angle_encoder_sim = new DutyCycleEncoderSim( angle_encoder);
    Joystick Joystick = new Joystick( 1 );
    private  TalonFXSimState simTopshoot;
-   //
-   //  System Identification objects
-   //
-   //
-   private Mechanism _topShootMechanism = new Mechanism(
-     (Measure<Voltage> voltage) -> { _topShoot.setControl( new VoltageOut( voltage.in( Volts)));},
-      log -> { log.motor( "topShoot" )
-                  .voltage( mutable(Volts.of( _topShoot.getMotorVoltage().getValue() ) ) )
-                  .linearVelocity( mutable( MetersPerSecond.of(_topShoot.getVelocity().getValue() ) ) ); },
-      this );
 
    public Shooter( BooleanSupplier new_trigger, DoubleSupplier new_distance )
    {
@@ -427,4 +421,13 @@ public class Shooter extends SubsystemBase
          _intake.setControl( new DutyCycleOut( 0.0 ) );
       }
    }
+  public static SysIdRoutine setAngleSysIdRoutine( Config config, TalonFX motor, SubsystemBase subsystem )
+  {
+    return new SysIdRoutine(config, new Mechanism(
+     (Measure<Voltage> voltage) -> { motor.setControl( new VoltageOut( voltage.in( Volts)));},
+      log -> { log.motor( "topShoot" )
+                  .voltage( mutable(Volts.of( motor.getMotorVoltage().getValue() ) ) )
+                  .linearVelocity( mutable( MetersPerSecond.of(motor.getVelocity().getValue() ) ) ); },
+      subsystem ) );
+  }
 }
