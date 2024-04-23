@@ -9,7 +9,7 @@ import frc.robot.commands.Manipulator;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
@@ -26,8 +26,8 @@ public class RobotContainer
 
    private final Manipulator m_manipulator = new Manipulator( arm, shooter );
    // Replace with CommandPS4Controller or CommandJoystick if needed
-   private final CommandXboxController m_driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+   private final CommandJoystick m_driverController =
+      new CommandJoystick( 0 );
 
    /** The container for the robot. Contains subsystems, OI devices, and commands. */
    public RobotContainer() 
@@ -51,27 +51,27 @@ public class RobotContainer
       //  Button stows manipulator
       //
       //
-      new Trigger( m_driverController.b() ).onTrue( m_manipulator.stowCommand() );
+      new Trigger( m_driverController.button( 1 ) ).onTrue( m_manipulator.stowCommand() );
       //
       //  Button held intakes until command complete (we have note). If released stow
       //  manipulator
       //
       //
-      new Trigger( m_driverController.a() ).whileTrue( m_manipulator.intakeCommand() )
+      new Trigger( m_driverController.button( 2 ) ).whileTrue( m_manipulator.intakeCommand() )
                                            .onFalse( m_manipulator.stowCommand() );
       //
       //  Button held targets speaker until command complete (we have no note). If
       //  released stow manipulator
       //
       //
-      new Trigger( m_driverController.x() ).whileTrue( m_manipulator.speakerCommand() )
+      new Trigger( m_driverController.button( 3 ) ).whileTrue( m_manipulator.speakerCommand() )
                                            .onFalse( m_manipulator.stowCommand() );
       //
       //  Button held targets amplifier until command complete (we have no note). If
       //  released stow manipulator
       //
       //
-      new Trigger( m_driverController.y() ).whileTrue( m_manipulator.ampCommand() )
+      new Trigger( m_driverController.button( 4 ) ).whileTrue( m_manipulator.ampCommand() )
                                            .onFalse( m_manipulator.stowCommand() );
    }
    //
@@ -80,10 +80,10 @@ public class RobotContainer
    //
    private void configureBindingsTestArm()
    {
-      new Trigger( m_driverController.a() ).onTrue( arm.setArm( false, false ) );
-      new Trigger( m_driverController.b() ).onTrue( arm.setArm( true,  false ) );
-      new Trigger( m_driverController.x() ).onTrue( arm.setArm( false, true  ) );
-      new Trigger( m_driverController.y() ).onTrue( arm.setArm( true,  true  ) );
+      new Trigger( m_driverController.button( 1 ) ).onTrue( arm.setArm( false, false ) );
+      new Trigger( m_driverController.button( 2 ) ).onTrue( arm.setArm( true,  false ) );
+      new Trigger( m_driverController.button( 3 ) ).onTrue( arm.setArm( false, true  ) );
+      new Trigger( m_driverController.button( 4 ) ).onTrue( arm.setArm( true,  true  ) );
    }
    /**
     * Use this to pass the autonomous command to the main {@link Robot} class.

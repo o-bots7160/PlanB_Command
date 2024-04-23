@@ -27,7 +27,7 @@ public class Arm extends SubsystemBase
          {
             _extension.retract( );         // pull it in
          }
-         else // extension is in and we can raise the arm
+         else // extension is in and we can raise or lower the arm
          {
             if ( target_elbow )
             {
@@ -53,7 +53,7 @@ public class Arm extends SubsystemBase
       boolean  return_value = true;
 
       if ( (  target_extend && !_extension.isExtended( )  ) ||
-           ( !target_extend && !_extension.isRetracted( ) ) )
+           ( !target_extend && !_extension.isRetracted( ) ) )  // the exension is not where we want
       {
          if ( target_extend )
          {

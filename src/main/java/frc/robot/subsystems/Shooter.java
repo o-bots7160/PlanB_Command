@@ -17,9 +17,11 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.simulation.DutyCycleEncoderSim;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -27,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
 import static edu.wpi.first.units.MutableMeasure.mutable;
 import static edu.wpi.first.units.Units.Degrees;
@@ -90,6 +93,7 @@ public class Shooter extends SubsystemBase
    private DutyCycleEncoderSim angle_encoder_sim = new DutyCycleEncoderSim( angle_encoder);
    Joystick Joystick = new Joystick( 1 );
    private  TalonFXSimState simTopshoot;
+   private  SlewRateLimiter angle_limiter = new SlewRateLimiter( 1.5 );
 
    public Shooter( BooleanSupplier new_trigger, DoubleSupplier new_distance )
    {
@@ -375,12 +379,15 @@ public class Shooter extends SubsystemBase
       // should equal  V to hold at 0 radians * Math.cos( target angle radians )
       double  armVolts = 0.0; // for gravity compensation
 
+      SmartDashboard.putNumber("AngleTarget", Math.toDegrees(angle_target));
+      SmartDashboard.putNumber("AnglePose", Math.toDegrees(angle_current));
+
       if ( calculating )
       {
          angle_target   = calculateAngle( );
          shooter_target = calculateRPM( );
       }
-      angle_current = angle_encoder.getAbsolutePosition( );
+      angle_current = angle_encoder.getAbsolutePosition( ) * 2.0 * Math.PI;
       pid_angle.setSetpoint( angle_target );
       angle_volts = pid_angle.calculate( angle_current ) + armVolts;
       _angle_motor.setVoltage( angle_volts );
@@ -394,7 +401,8 @@ public class Shooter extends SubsystemBase
    public void simulationPeriodic()
    {
       //System.out.println( "sim:" + Math.toDegrees( angle_current ) + " " + angle_volts + " " + pid_angle.getPositionError() );
-      angle_encoder_sim.setAbsolutePosition( angle_current + angle_volts * 0.01 );
+      
+      angle_encoder_sim.setAbsolutePosition( angle_limiter.calculate( angle_current + angle_volts * 0.01 ) );
       if ( angle_current < stow_angle )
       {
          angle_current = stow_angle;
