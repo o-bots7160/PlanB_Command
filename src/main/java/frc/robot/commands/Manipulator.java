@@ -9,6 +9,10 @@ public class Manipulator
 {
    public Arm     arm;
    public Shooter shooter;
+   //
+   //   Constructor
+   //
+   //
    public Manipulator( Arm new_arm, Shooter new_shooter )
    {
       arm     = new_arm;
@@ -22,7 +26,8 @@ public class Manipulator
    {
       return new PrintCommand( "Stow" ).andThen(
                  shooter.stow( ) ).andThen(
-                 arm.setArm(false, false) );
+                 arm.setArm(false, false) ).andThen(
+             new PrintCommand( "Stow complete" ) );
    }
    //
    //   Set shooter to target and shoot at speaker
@@ -33,8 +38,9 @@ public class Manipulator
       return new PrintCommand( "Speaker" ).andThen(
                  shooter.stow( ) ).andThen(
                  arm.setArm( false, false ) ).andThen(
-                 shooter.shootSpeaker( ) ).andThen(
-                 shooter.stow( ) );
+                 shooter.speaker( ) ).andThen(
+                 shooter.stow( ) ).andThen(
+             new PrintCommand( "Speaker complete" ) );
    }
    //
    //   Set shooter to intake
@@ -47,7 +53,8 @@ public class Manipulator
                  arm.setArm( true, false ) ).andThen(
                  shooter.intake( ) ).andThen(
                  shooter.stow( ) ).andThen(
-                 arm.setArm(false, false) ).until( ()->{ return shooter.haveNote(); } );
+                 arm.setArm(false, false) ).andThen(
+             new PrintCommand( "Intake complete" ) );
    }
    //
    //   Set shooter to target and shoot at amp
@@ -60,7 +67,8 @@ public class Manipulator
                  arm.setArm( true, true ) ).andThen(
                  shooter.shootAmp( ) ).andThen(
                  shooter.stow( ) ).andThen(
-                 arm.setArm( false, false ) );
+                 arm.setArm( false, false ) ).andThen(
+             new PrintCommand( "Amplifier Complete" ) );
    }
    //
    //   Set shooter prep for climbing
@@ -68,8 +76,22 @@ public class Manipulator
    //
    public Command climbCommand( )
    {
-      return new PrintCommand( "Amplifier" ).andThen(
+      return new PrintCommand( "Climb" ).andThen(
                  shooter.stow( ) ).andThen(
-                 arm.setArm( true, true ) );
+                 arm.setArm( false, true ) ).andThen(
+             new PrintCommand( "Climb complete" ) );
+   }
+   //
+   //   Set shoot to eject note
+   //
+   //
+   public Command ejectCommand( )
+   {
+      return new PrintCommand( "eject" ).andThen(
+                 shooter.stow( ) ).andThen(
+                 arm.setArm( false, false ) ).andThen(
+                 shooter.eject( ) ).andThen(
+                 shooter.stow( ) ).andThen(
+             new PrintCommand( "eject complete" ) );
    }
 }

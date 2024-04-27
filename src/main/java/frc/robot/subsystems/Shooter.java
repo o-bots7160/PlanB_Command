@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.simulation.DutyCycleEncoderSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
@@ -117,7 +118,7 @@ public class Shooter extends SubsystemBase
       //pid_angle.setIZone      ( 0.0 );
       //pid_angle.setFF         ( 0.0 );
       //pid_angle.setOutputRange( -0.9, 0.9 );
-      angle_encoder.setDistancePerRotation( 4.0 * Math.PI );
+      //angle_encoder.setDistancePerRotation( 4.0 * Math.PI );
 
       _intake = new TalonFX(53);
       //_intake.setControl( );
@@ -184,17 +185,18 @@ public class Shooter extends SubsystemBase
    //
    public Command stow( )
    {
-      return new FunctionalCommand(
-         ()->{ calculating    = false;
-               shooting       = false;
-               angle_target   = stow_angle;
-               intake_target  = 0.0;
-               shooter_target = 0.0;
-               pid_angle.reset( ); },
-         ()->{ },
-         interrupted ->{ },
-         ()->{ return isReady( ); },
-         this);
+      return new PrintCommand( "Shooter: stow" ).andThen (
+             new FunctionalCommand(
+                 ()->{ calculating    = false;
+                       shooting       = false;
+                       angle_target   = stow_angle;
+                       intake_target  = 0.0;
+                       shooter_target = 0.0;
+                       pid_angle.reset( ); },
+                 ()->{ },
+                 interrupted ->{ },
+                 ()->{ return isReady( ); },
+                 this ) );
    }
    //
    //   Prep shooter for ejecting note
@@ -220,35 +222,37 @@ public class Shooter extends SubsystemBase
    //
    public Command intake( )
    {
-      return new FunctionalCommand(
-         ()->{ calculating    = false;
-               shooting       = false;
-               angle_target   = intake_angle;
-               intake_target  =  40.0;
-               shooter_target =   0.0;
-               pid_angle.reset( ); },
-         ()->{ },
-         interrupted ->{ },
-         ()->{ return /*isReady( ) && */haveNote(); },
-         this);
+      return new PrintCommand( "Shooter: intake" ).andThen (
+             new FunctionalCommand(
+                ()->{ calculating    = false;
+                      shooting       = false;
+                      angle_target   = intake_angle;
+                      intake_target  =  40.0;
+                      shooter_target =   0.0;
+                      pid_angle.reset( ); },
+                ()->{ },
+                interrupted ->{ },
+                ()->{ return isReady( ) && haveNote(); },
+                this ) );
    }
    //
    //   Prep shooter for shooting Note at speaker
    //
    //
-   public Command shootSpeaker( )
+   public Command speaker( )
    {
-      return new FunctionalCommand(
-         ()->{ calculating    = true;
-               shooting       = true;
-               angle_target   = calculateAngle( );
-               intake_target  =  80.0;
-               shooter_target = calculateRPM( );
-               pid_angle.reset( ); },
-         ()->{ },
-         interrupted ->{ },
-         ()->{ return isReady( ) && ! haveNote(); },
-         this);
+      return new PrintCommand( "Shooter: speaker" ).andThen (
+             new FunctionalCommand(
+                ()->{ calculating    = true;
+                      shooting       = true;
+                      angle_target   = calculateAngle( );
+                      intake_target  =  80.0;
+                      shooter_target = calculateRPM( );
+                      pid_angle.reset( ); },
+                ()->{ },
+                interrupted ->{ },
+                ()->{ return isReady( ) && ! haveNote(); },
+                this ) );
    }
    //
    //   Prep shooter for shooting Note at amp
@@ -256,16 +260,17 @@ public class Shooter extends SubsystemBase
    //
    public Command shootAmp( )
    {
-      return new FunctionalCommand(
-         ()->{ calculating    = false;
-               shooting       = true;
-               angle_target   = amp_angle;
-               intake_target  =  80.0;
-               shooter_target =   0.5; },
-         ()->{ },
-         interrupted ->{ },
-         ()->{ return isReady( ) && !haveNote(); },
-         this);
+      return new PrintCommand( "Shooter: amp" ).andThen (
+             new FunctionalCommand(
+                ()->{ calculating    = false;
+                      shooting       = true;
+                      angle_target   = amp_angle;
+                      intake_target  =  80.0;
+                      shooter_target =   0.5; },
+                ()->{ },
+                interrupted ->{ },
+                ()->{ return isReady( ) && !haveNote(); },
+                this ) );
    }
    //
    //   Return true if shooter at angle and speeds
@@ -367,7 +372,7 @@ public class Shooter extends SubsystemBase
    //
    private double calculateRPM( )
    {
-      return 4150; // 65% of TalonFX max 6380;
+      return 4150; // FIXME currently set to 65% of TalonFX max 6380;
    }
    //
    //   Simulate shooter movement for testing
@@ -401,12 +406,18 @@ public class Shooter extends SubsystemBase
    public void simulationPeriodic()
    {
       //System.out.println( "sim:" + Math.toDegrees( angle_current ) + " " + angle_volts + " " + pid_angle.getPositionError() );
-      
-      angle_encoder_sim.setAbsolutePosition( angle_limiter.calculate( angle_current + angle_volts * 0.01 ) );
+      angle_current = angle_limiter.calculate( angle_current + angle_volts * 0.01 );
       if ( angle_current < stow_angle )
       {
          angle_current = stow_angle;
       }
+      else if ( angle_current > intake_angle )
+      {
+         angle_current = intake_angle;
+      }
+      //System.out.println( "sim:" + Math.toDegrees( angle_current ) + " " + angle_volts + " " + pid_angle.getPositionError() );
+      angle_encoder_sim.setAbsolutePosition( angle_current / 2.0 / Math.PI );
+
       if ( Joystick.getRawButton( 1 ) )
       {
          last_distance = 200;
@@ -429,13 +440,13 @@ public class Shooter extends SubsystemBase
          _intake.setControl( new DutyCycleOut( 0.0 ) );
       }
    }
-  public static SysIdRoutine setAngleSysIdRoutine( Config config, TalonFX motor, SubsystemBase subsystem )
-  {
-    return new SysIdRoutine(config, new Mechanism(
-     (Measure<Voltage> voltage) -> { motor.setControl( new VoltageOut( voltage.in( Volts)));},
-      log -> { log.motor( "topShoot" )
+   public static SysIdRoutine setAngleSysIdRoutine( Config config, TalonFX motor, SubsystemBase subsystem )
+   {
+      return new SysIdRoutine(config, new Mechanism(
+         (Measure<Voltage> voltage) -> { motor.setControl( new VoltageOut( voltage.in( Volts)));},
+          log -> { log.motor( "topShoot" )
                   .voltage( mutable(Volts.of( motor.getMotorVoltage().getValue() ) ) )
                   .linearVelocity( mutable( MetersPerSecond.of(motor.getVelocity().getValue() ) ) ); },
-      subsystem ) );
-  }
+          subsystem ) );
+   }
 }

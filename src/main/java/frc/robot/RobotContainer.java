@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Manipulator;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Shooter;

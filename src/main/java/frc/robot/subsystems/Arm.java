@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Arm extends SubsystemBase
@@ -73,13 +74,14 @@ public class Arm extends SubsystemBase
    //
    public Command setArm( boolean new_extend, boolean new_elbow )
    {
-      return new FunctionalCommand(
-                ()->{ target_extend = new_extend;
-                      target_elbow  = new_elbow; },
-                ()->{ },
-                interrupted ->{ },
-                ()->{ return isAtPosition( ); },
-                this );
+      return new PrintCommand( "Arm extend: " + new_extend + ", elbow " + new_elbow ).andThen(
+             new FunctionalCommand(
+                 ()->{ target_extend = new_extend;
+                       target_elbow  = new_elbow; },
+                 ()->{ },
+                 interrupted ->{ },
+                 ()->{ return isAtPosition( ); },
+                 this ) );
    }
    //
    //   Check to see if the arm is in position
