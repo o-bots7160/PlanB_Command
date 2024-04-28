@@ -1,9 +1,11 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.TimedDoubleSolenoid;
 
 public class Arm extends SubsystemBase
 {
@@ -108,5 +110,8 @@ public class Arm extends SubsystemBase
    public void periodic( )
    {
       isAtPosition( );
+      SmartDashboard.putData("Arm extend", _extension );
+      SmartDashboard.putData("Arm 0",      _arm0      );
+      SmartDashboard.putData("Arm 1",      _arm1      );
    }
 }

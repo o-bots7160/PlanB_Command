@@ -30,7 +30,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
 import static edu.wpi.first.units.MutableMeasure.mutable;
 import static edu.wpi.first.units.Units.Degrees;
@@ -38,13 +37,12 @@ import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Value;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.units.Voltage;
-
+import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.robot.Robot;
-import swervelib.SwerveDrive;
-import swervelib.SwerveDriveTest;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -213,7 +211,7 @@ public class Shooter extends SubsystemBase
                pid_angle.reset( ); },
          ()->{ },
          interrupted ->{ },
-         ()->{ return isReady( ); },
+         ()->{ return isReady( ) && ! haveNote(); },
          this);
    }
    //
@@ -384,9 +382,6 @@ public class Shooter extends SubsystemBase
       // should equal  V to hold at 0 radians * Math.cos( target angle radians )
       double  armVolts = 0.0; // for gravity compensation
 
-      SmartDashboard.putNumber("AngleTarget", Math.toDegrees(angle_target));
-      SmartDashboard.putNumber("AnglePose", Math.toDegrees(angle_current));
-
       if ( calculating )
       {
          angle_target   = calculateAngle( );
@@ -398,6 +393,7 @@ public class Shooter extends SubsystemBase
       _angle_motor.setVoltage( angle_volts );
 
       _topShoot.setControl( new VelocityVoltage( shooter_target ) );
+      SmartDashboard.putData("Shooter", this );
    }
    //
    //   Simulate shooter movement for testing
@@ -448,5 +444,21 @@ public class Shooter extends SubsystemBase
                   .voltage( mutable(Volts.of( motor.getMotorVoltage().getValue() ) ) )
                   .linearVelocity( mutable( MetersPerSecond.of(motor.getVelocity().getValue() ) ) ); },
           subsystem ) );
+   }
+   //
+   //   Make this a sendable class.
+   //
+   //
+   @Override
+   //
+   // Publish the shooter telemetry
+   //
+   //
+   public void initSendable( SendableBuilder builder )
+   {
+      super.initSendable( builder );
+      builder.setSmartDashboardType( "what" );
+      builder.addDoubleProperty("Angle Target", ()->{ return Math.toDegrees( angle_target  ); }, null );
+      builder.addDoubleProperty("Angle Pose",   ()->{ return Math.toDegrees( angle_current ); }, null );
    }
 }

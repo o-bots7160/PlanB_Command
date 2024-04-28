@@ -24,33 +24,49 @@ public class RobotContainer
    private final Shooter shooter = new Shooter( ()->{ return false; }, ()->{return 0.0;} );
 
    private final Manipulator m_manipulator = new Manipulator( arm, shooter );
-   // Replace with CommandPS4Controller or CommandJoystick if needed
-   private final CommandJoystick m_driverController =
-      new CommandJoystick( 0 );
+
+   private final CommandJoystick m_driverController = new CommandJoystick( 0 );
+
+   private Trigger trigger1;
 
    /** The container for the robot. Contains subsystems, OI devices, and commands. */
    public RobotContainer() 
    {
-      // Configure the trigger bindings
-      configureBindings();
    }
-
-   /**
-    * Use this method to define your trigger->command mappings. Triggers can be created via the
-    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
-    * predicate, or via the named factories in {@link
-    * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
-    * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-    * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
-    * joysticks}.
-    */
-   private void configureBindings()
+   public void teleopInit()
+   {
+      // Configure the trigger bindings
+      unbindButtons();
+      configureTeleopBindings();
+   }
+   public void testInit()
+   {
+      // Configure the trigger bindings
+      unbindButtons();
+      configureTestBindingsForArm();
+   }
+   public void unbindButtons()
+   {
+      trigger1 = null;
+      System.gc();
+   //    Field schedulerBtns;
+   //    try
+   //    {
+   //       schedulerBtns = Scheduler.class.getDeclaredField( “m_buttons” );
+   //       schedulerBtns.setAccessible(true);
+   //       ((Vector) schedulerBtns.get(Scheduler.getInstance())).clear();
+   //    } catch (Exception e) {
+   //       System.err.println(“wpilib broke”);
+   //       return;
+   //    }
+   }
+   private void configureTeleopBindings()
    {
       //
       //  Button stows manipulator
       //
       //
-      new Trigger( m_driverController.button( 1 ) ).onTrue( m_manipulator.stowCommand() );
+      trigger1 = new Trigger( m_driverController.button( 1 ) ).onTrue( m_manipulator.stowCommand() );
       //
       //  Button held intakes until command complete (we have note). If released stow
       //  manipulator
@@ -77,7 +93,7 @@ public class RobotContainer
    //  Button bindings to test pneumatic arm
    //
    //
-   private void configureBindingsTestArm()
+   private void configureTestBindingsForArm()
    {
       new Trigger( m_driverController.button( 1 ) ).onTrue( arm.setArm( false, false ) );
       new Trigger( m_driverController.button( 2 ) ).onTrue( arm.setArm( true,  false ) );

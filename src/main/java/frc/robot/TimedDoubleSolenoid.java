@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.simulation.DoubleSolenoidSim;
-import frc.robot.OnOffDelay;
 
 public class TimedDoubleSolenoid implements Sendable
 {
@@ -97,6 +96,6 @@ public class TimedDoubleSolenoid implements Sendable
    {
       // Publish the solenoid state to telemetry.
       builder.addBooleanProperty("raw", ()->{ return _solenoid.get() == Value.kForward; }, null);
-      builder.addBooleanProperty("filtered", ()->{ return _solenoid.get() == Value.kForward; }, null);
+      builder.addBooleanProperty("filtered", ()->{ return delay.get(); }, null);
    }
 }
