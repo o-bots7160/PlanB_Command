@@ -7,7 +7,9 @@ package frc.robot;
 import frc.robot.commands.Manipulator;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Shooter;
+
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -27,46 +29,39 @@ public class RobotContainer
 
    private final CommandJoystick m_driverController = new CommandJoystick( 0 );
 
-   private Trigger trigger1;
-
    /** The container for the robot. Contains subsystems, OI devices, and commands. */
    public RobotContainer() 
    {
    }
+   //
+   // Initialize Teleop and configure the trigger bindings
+   //
+   //
    public void teleopInit()
    {
-      // Configure the trigger bindings
-      unbindButtons();
+      CommandScheduler.getInstance().getActiveButtonLoop().clear();
       configureTeleopBindings();
    }
+   //
+   // Initialize Test and configure the trigger bindings
+   //
+   //
    public void testInit()
    {
-      // Configure the trigger bindings
-      unbindButtons();
+      CommandScheduler.getInstance().getActiveButtonLoop().clear();
       configureTestBindingsForArm();
    }
-   public void unbindButtons()
-   {
-      trigger1 = null;
-      System.gc();
-   //    Field schedulerBtns;
-   //    try
-   //    {
-   //       schedulerBtns = Scheduler.class.getDeclaredField( “m_buttons” );
-   //       schedulerBtns.setAccessible(true);
-   //       ((Vector) schedulerBtns.get(Scheduler.getInstance())).clear();
-   //    } catch (Exception e) {
-   //       System.err.println(“wpilib broke”);
-   //       return;
-   //    }
-   }
+   //
+   // Configure the trigger bindings for teleop mode
+   //
+   //
    private void configureTeleopBindings()
    {
       //
       //  Button stows manipulator
       //
       //
-      trigger1 = new Trigger( m_driverController.button( 1 ) ).onTrue( m_manipulator.stowCommand() );
+      new Trigger( m_driverController.button( 1 ) ).onTrue( m_manipulator.stowCommand() );
       //
       //  Button held intakes until command complete (we have note). If released stow
       //  manipulator
