@@ -36,10 +36,10 @@ public class Manipulator
    public Command speakerCommand( )
    {
       return new PrintCommand( "Speaker" ).andThen(
-                 shooter.stow( ) ).andThen(
+                 shooter.stow( ).andThen(
                  arm.setArm( false, false ) ).andThen(
                  shooter.speaker( ) ).andThen(
-                 shooter.stow( ) ).andThen(
+                 shooter.stow( ) ) ).unless( ()->{ return ! shooter.haveNote(); } ).andThen(
              new PrintCommand( "Speaker complete" ) );
    }
    //
@@ -49,11 +49,11 @@ public class Manipulator
    public Command intakeCommand( )
    {
       return new PrintCommand( "Intake" ).andThen(
-                 shooter.stow( ) ).andThen(
+                 shooter.stow( ).andThen(
                  arm.setArm( true, false ) ).andThen(
                  shooter.intake( ) ).andThen(
                  shooter.stow( ) ).andThen(
-                 arm.setArm(false, false) ).andThen(
+                 arm.setArm(false, false) ) ).unless( ()->{ return shooter.haveNote(); } ).andThen(
              new PrintCommand( "Intake complete" ) );
    }
    //
@@ -63,11 +63,11 @@ public class Manipulator
    public Command ampCommand( )
    {
       return new PrintCommand( "Amplifier" ).andThen(
-                 shooter.stow( ) ).andThen(
+                 shooter.stow( ).andThen(
                  arm.setArm( true, true ) ).andThen(
                  shooter.shootAmp( ) ).andThen(
                  shooter.stow( ) ).andThen(
-                 arm.setArm( false, false ) ).andThen(
+                 arm.setArm( false, false ) ) ).unless( ()->{ return ! shooter.haveNote(); } ).andThen(
              new PrintCommand( "Amplifier Complete" ) );
    }
    //
@@ -88,10 +88,10 @@ public class Manipulator
    public Command ejectCommand( )
    {
       return new PrintCommand( "eject" ).andThen(
-                 shooter.stow( ) ).andThen(
+                 shooter.stow( ).andThen(
                  arm.setArm( false, false ) ).andThen(
                  shooter.eject( ) ).andThen(
-                 shooter.stow( ) ).andThen(
+                 shooter.stow( ) ) ).unless( ()->{ return ! shooter.haveNote(); } ).andThen(
              new PrintCommand( "eject complete" ) );
    }
 }
