@@ -49,7 +49,8 @@ public class RobotContainer
    public void testInit()
    {
       CommandScheduler.getInstance().getActiveButtonLoop().clear();
-      configureTestBindingsForArm();
+      //configureTestBindingsForArm();
+      configureTestBindingsForShooter();
    }
    //
    // Configure the trigger bindings for teleop mode
@@ -94,6 +95,17 @@ public class RobotContainer
       new Trigger( m_driverController.button( 2 ) ).onTrue( arm.setArm( true,  false ) );
       new Trigger( m_driverController.button( 3 ) ).onTrue( arm.setArm( false, true  ) );
       new Trigger( m_driverController.button( 4 ) ).onTrue( arm.setArm( true,  true  ) );
+   }
+   //
+   //  Button bindings to test shooter SysId
+   //
+   //
+   private void configureTestBindingsForShooter()
+   {
+      new Trigger( m_driverController.button( 1 ) ).whileTrue( arm.setArm( true,  false).andThen( shooter.setAngleSysIdTest( ) ) );
+      new Trigger( m_driverController.button( 2 ) ).whileTrue( shooter.setTopSysIdTest( ) );
+      new Trigger( m_driverController.button( 2 ) ).whileTrue( shooter.setBotSysIdTest( ) );
+      new Trigger( m_driverController.button( 4 ) ).whileTrue( arm.setArm( true,  true  ) );
    }
    /**
     * Use this to pass the autonomous command to the main {@link Robot} class.

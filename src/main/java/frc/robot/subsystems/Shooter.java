@@ -15,6 +15,7 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkBase.SoftLimitDirection;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -26,8 +27,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import edu.wpi.first.wpilibj.Joystick;
 
@@ -113,10 +116,8 @@ public class Shooter extends SubsystemBase
       pid_angle.enableContinuousInput( 0.0, 2.0 * Math.PI );
       pid_angle.setTolerance( Math.toRadians( 1.0 ) );
       pid_angle.setIZone(     Math.toRadians( 2.0 ) );
-      //pid_angle.setIZone      ( 0.0 );
       //pid_angle.setFF         ( 0.0 );
       //pid_angle.setOutputRange( -0.9, 0.9 );
-      //angle_encoder.setDistancePerRotation( 4.0 * Math.PI );
 
       _intake = new TalonFX(53);
       //_intake.setControl( );
@@ -393,6 +394,10 @@ public class Shooter extends SubsystemBase
       _angle_motor.setVoltage( angle_volts );
 
       _topShoot.setControl( new VelocityVoltage( shooter_target ) );
+      //
+      // Publish the shooter telemetry
+      //
+      //
       SmartDashboard.putData("Shooter", this );
    }
    //
@@ -436,24 +441,81 @@ public class Shooter extends SubsystemBase
          _intake.setControl( new DutyCycleOut( 0.0 ) );
       }
    }
-   public static SysIdRoutine setAngleSysIdRoutine( Config config, TalonFX motor, SubsystemBase subsystem )
+   //
+   // Create a SysIdRoutine for a Talon motor
+   //
+   //
+   public static SysIdRoutine setMotorSysIdRoutine( Config config, TalonFX motor, SubsystemBase subsystem )
    {
       return new SysIdRoutine(config, new Mechanism(
-         (Measure<Voltage> voltage) -> { motor.setControl( new VoltageOut( voltage.in( Volts)));},
+         (Measure<Voltage> voltage) -> { motor.setControl( new VoltageOut( voltage.in( Volts ) ) ); },
           log -> { log.motor( "topShoot" )
-                  .voltage( mutable(Volts.of( motor.getMotorVoltage().getValue() ) ) )
-                  .linearVelocity( mutable( MetersPerSecond.of(motor.getVelocity().getValue() ) ) ); },
+                  .voltage( mutable( Volts.of( motor.getMotorVoltage().getValue() ) ) )
+                  .linearVelocity( mutable( MetersPerSecond.of( motor.getVelocity().getValue() ) ) ); },
           subsystem ) );
+   }
+   //
+   // Create a SysIdRoutine for a Talon motor
+   //
+   //
+   public static SysIdRoutine setMotorSysIdRoutine( Config config, CANSparkMax motor, SubsystemBase subsystem )
+   {
+      return new SysIdRoutine(config, new Mechanism(
+         (Measure<Voltage> voltage) -> { motor.setVoltage( voltage.in( Volts ) ); },
+          log -> { log.motor( "topShoot" )
+                  .voltage( mutable( Volts.of( motor.getBusVoltage() * motor.getAppliedOutput() ) ) )
+                  .linearVelocity( mutable( MetersPerSecond.of( motor.getEncoder().getVelocity() ) ) ); },
+          subsystem ) );
+   }
+   //
+   // Create a SysIdRoutine Command for the angle motor
+   //
+   //
+   public Command setAngleSysIdTest( )
+   {
+      return new PrintCommand( "Angle SysId Start" ).andThen(
+             setMotorSysIdRoutine( new Config(), _angle_motor, this ).quasistatic( Direction.kForward ) ).andThen( 
+             new WaitCommand( 10.0 ) ).andThen(
+             setMotorSysIdRoutine( new Config(), _angle_motor, this ).quasistatic( Direction.kReverse ) ).andThen(   
+             new WaitCommand( 10.0 ) ).andThen(
+             setMotorSysIdRoutine( new Config(), _angle_motor, this ).dynamic( Direction.kForward ) ).andThen( 
+             new WaitCommand( 10.0 ) ).andThen(
+             setMotorSysIdRoutine( new Config(), _angle_motor, this ).dynamic( Direction.kReverse ) ).andThen(
+             new PrintCommand( "Angle SysId test complete" ) );
+   }
+   //
+   // Create a SysIdRoutine Command for the top shooter motor
+   //
+   //
+   public Command setTopSysIdTest( )
+   {
+      return setMotorSysIdRoutine( new Config(), _topShoot, this ).quasistatic( Direction.kForward ).andThen( 
+             new WaitCommand( 10.0 ) ).andThen(
+             setMotorSysIdRoutine( new Config(), _topShoot, this ).quasistatic( Direction.kReverse ).andThen(   
+             new WaitCommand( 10.0 ) ) ).andThen(
+             setMotorSysIdRoutine( new Config(), _topShoot, this ).dynamic( Direction.kForward ).andThen( 
+             new WaitCommand( 10.0 ) ).andThen(
+             setMotorSysIdRoutine( new Config(), _topShoot, this ).dynamic( Direction.kReverse ) ) );
+   }
+   //
+   // Create a SysIdRoutine Command for the bottom shooter motor
+   //
+   //
+   public Command setBotSysIdTest( )
+   {
+      return setMotorSysIdRoutine( new Config(), _bottomShoot, this ).quasistatic( Direction.kForward ).andThen( 
+             new WaitCommand( 10.0 ) ).andThen(
+             setMotorSysIdRoutine( new Config(), _bottomShoot, this ).quasistatic( Direction.kReverse ).andThen(   
+             new WaitCommand( 10.0 ) ) ).andThen(
+             setMotorSysIdRoutine( new Config(), _bottomShoot, this ).dynamic( Direction.kForward ).andThen( 
+             new WaitCommand( 10.0 ) ).andThen(
+             setMotorSysIdRoutine( new Config(), _bottomShoot, this ).dynamic( Direction.kReverse ) ) );
    }
    //
    //   Make this a sendable class.
    //
    //
    @Override
-   //
-   // Publish the shooter telemetry
-   //
-   //
    public void initSendable( SendableBuilder builder )
    {
       super.initSendable( builder );
